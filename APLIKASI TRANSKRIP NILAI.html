@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Transkrip Nilai Teknik Sipil Universitas Wijaya Kusuma Purwokerto - CLEAN</title>
+<style>
+:root{
+  --bg:#f5f8ff; --accent:#003d8f; --accent2:#005fc5; --card:#fff;
+  --muted:#64748b; --danger:#ef4444; --warn:#f59e0b; --dangerLight:#fee2e2;
+}
+*{box-sizing:border-box}
+body{font-family:Inter,system-ui,Arial,Helvetica,sans-serif;margin:0;background:var(--bg);color:#0b1220;padding:16px}
+.container{max-width:1200px;margin:0 auto}
+.header{display:flex;gap:16px;align-items:center;background:linear-gradient(90deg,var(--accent),var(--accent2));color:white;padding:22px;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,0.12);border:1px solid rgba(255,255,255,0.25)}
+.header img{height:70px;border-radius:10px;background:rgba(255,255,255,0.12);padding:6px;object-fit:contain}
+.header .title{flex:1;display:flex;flex-direction:column;justify-content:center}
+.header h1{margin:0;font-size:22px;font-weight:700;letter-spacing:0.3px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center}
+.controls input[type=text]{padding:8px;border-radius:8px;border:1px solid #e6eef8;min-width:160px}
+.btn{padding:8px 10px;border-radius:8px;border:0;background:var(--accent2);color:white;cursor:pointer}
+.btn.ghost{background:#eef2ff;color:var(--accent2);border:1px solid #dbeafe}
+.layout{display:flex;gap:12px;align-items:flex-start}
+.left{flex:1}
+.right{width:360px}
+.card{background:var(--card);padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(12,18,38,0.06);margin-bottom:12px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{padding:8px 10px;border-radius:8px;background:#fff;border:1px solid #e6eef8;cursor:pointer}
+.tab.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:white}
+.table-wrap{overflow:auto;background:var(--card);padding:8px;border-radius:8px;border:1px solid #e6eef8;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid #eef3fb;padding:8px;text-align:left;vertical-align:middle}
+th{background:#f0f6ff;position:sticky;top:0;z-index:2}
+tfoot td{background:#f8fafc;font-weight:700}
+select,input[type=text]{padding:6px;border-radius:6px;border:1px solid #e2e8f0}
+.d-warning td{background:#fff7ed}
+.e-repeat td{background:var(--dangerLight)}
+.sem-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-top:12px}
+.sem-col{background:#fff;padding:8px;border-radius:8px;border:1px solid #e6eef8;min-height:80px;max-height:420px;overflow:auto}
+.sem-col h4{margin:0 0 6px 0;font-size:14px}
+.sem-item{display:flex;justify-content:space-between;padding:4px 6px;border-radius:6px;margin-bottom:4px;cursor:pointer}
+.sem-item:hover{background:#f8fafc}
+.small-muted{font-size:13px;color:var(--muted)}
+.note{font-size:13px;color:var(--muted);margin-top:8px}
+.req-ok{color:green;font-weight:700}
+.req-bad{color:var(--danger);font-weight:700}
+.kecil{font-size:12px;color:var(--muted)}
+.sem-ip{margin-top:8px;padding:8px;border-radius:8px;background:#f8fafc;font-weight:700}
+@media (max-width:1100px){ .sem-grid{grid-template-columns:repeat(4,1fr)} }
+@media (max-width:700px){ .layout{flex-direction:column} .right{width:100%} .sem-grid{grid-template-columns:repeat(2,1fr)} .header{flex-direction:column;align-items:flex-start} }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container">
+
+  <div class="header" role="banner">
+    <img id="logo" src="unwiku_logo.png" alt="Logo UNWIKU" onerror="this.style.display='none'">
+    <div class="title"><h1>Transkrip Nilai Teknik Sipil Universitas Wijaya Kusuma Purwokerto</h1></div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <label class="btn" title="Pilih logo">
+        <input id="logoFile" type="file" accept="image/*" style="display:none" onchange="loadLogo(this.files)"/>Pilih Logo
+      </label>
+      <button class="btn ghost" onclick="resetLogo()">Reset logo</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label><strong>Nama:</strong> <input id="studentName" type="text" placeholder="Nama mahasiswa"></label>
+    <label><strong>NIM:</strong> <input id="studentNIM" type="text" placeholder="NIM"></label>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn ghost" onclick="fillExample()">Isi contoh</button>
+      <button class="btn ghost" onclick="clearAll()">Bersihkan</button>
+      <button class="btn" onclick="exportAll()">Export All</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="left">
+      <div class="card"><div class="tabs" id="tabs"></div></div>
+      <div id="sheetArea" class="card"></div>
+      <div class="card">
+        <strong>Tampilan Per-Semester (Klik utk fokus)</strong>
+        <div class="small-muted">Paket semester sesuai kurikulum Anda.</div>
+        <div id="semesterGrid" class="sem-grid"></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="card">
+        <strong>Ringkasan</strong>
+        <div style="margin-top:8px" id="gradeCounts">A:0 A-:0 B+:0 B:0 B-:0 C+:0 C:0 D:0 E:0</div>
+        <div style="margin-top:8px" id="gpa">IPK: 0.00</div>
+        <div style="margin-top:8px" id="sksSummary">SKS total (program): 0 • Sudah diisi: 0 • Lulus: 0</div>
+        <div style="margin-top:8px" id="reqs">KKN (Kuliah Kerja Nyata): 0/80 (BELUM)<br>KP (Kerja Praktik): 0/100 (BELUM)<br>TA (Tugas Akhir): 0/125 (BELUM)</div>
+        <div style="margin-top:8px"><strong>Syarat Kelulusan SKS:</strong> <span id="gradReqStatus">0/144 (BELUM)</span></div>
+      </div>
+
+      <div class="card">
+        <strong>Filter Cepat</strong>
+        <div style="margin-top:8px">
+          <label><input type="checkbox" id="filterC" onchange="applyQuickFilters()"> Tampilkan hanya C</label><br>
+          <label><input type="checkbox" id="filterD" onchange="applyQuickFilters()"> Tampilkan hanya D</label><br>
+          <label><input type="checkbox" id="onlyE" onchange="applyQuickFilters()"> Tampilkan hanya E (harus ulang)</label><br>
+          <label>Filter Semester:
+            <select id="quickSemester" onchange="applyQuickFilters()"><option value="">Semua</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== ORIGINAL COURSES (CLEAN, UNIQUE IDS) ===================== */
+const originalCourses = [
+{"id":1,"code":"TKS25101","name":"Matematika I","sks":4,"semester":"1","grade":"","passed":false},
+{"id":2,"code":"TKS25102","name":"Fisika Dasar Mekanika","sks":2,"semester":"1","grade":"","passed":false},
+{"id":3,"code":"TKS25103","name":"Alogaritma Dan Pemrograman","sks":2,"semester":"1","grade":"","passed":false},
+{"id":4,"code":"TKS25104","name":"Geologi Dan Geoteknik","sks":2,"semester":"1","grade":"","passed":false},
+{"id":5,"code":"UNO20010","name":"Jati Diri Unwiku","sks":2,"semester":"1","grade":"","passed":false},
+{"id":6,"code":"TKS25105","name":"Gambar Struktur Bangunan","sks":3,"semester":"1","grade":"","passed":false},
+{"id":7,"code":"TKS25106","name":"Analisa Struktur I","sks":3,"semester":"1","grade":"","passed":false},
+{"id":8,"code":"TKS25107","name":"Geomatika","sks":1,"semester":"1","grade":"","passed":false},
+{"id":9,"code":"TKS25108","name":"Praktikum Geomatika","sks":1,"semester":"1","grade":"","passed":false},
+
+{"id":10,"code":"TKS25201","name":"Matematika II","sks":3,"semester":"2","grade":"","passed":false},
+{"id":11,"code":"TKS25202","name":"Kimia","sks":3,"semester":"2","grade":"","passed":false},
+{"id":12,"code":"TKS25203","name":"Fisika Dasar Listrik Dan Termal","sks":2,"semester":"2","grade":"","passed":false},
+{"id":13,"code":"TKS25204","name":"Analisa Struktur II","sks":3,"semester":"2","grade":"","passed":false},
+{"id":14,"code":"TKS25205","name":"Rekayasa Lingkungan","sks":2,"semester":"2","grade":"","passed":false},
+{"id":15,"code":"TKS25206","name":"Mekanika Fluida","sks":2,"semester":"2","grade":"","passed":false},
+{"id":16,"code":"TKS25207","name":"Rekayasa Lalu Lintas","sks":2,"semester":"2","grade":"","passed":false},
+{"id":17,"code":"TKS25208","name":"Mekanika Tanah","sks":3,"semester":"2","grade":"","passed":false},
+
+{"id":18,"code":"TKS25301","name":"Matematika III","sks":3,"semester":"3","grade":"","passed":false},
+{"id":19,"code":"TKS25302","name":"Biologi Lingkungan & Ekologi","sks":2,"semester":"3","grade":"","passed":false},
+{"id":20,"code":"TKS25303","name":"Mekanika Bahan","sks":3,"semester":"3","grade":"","passed":false},
+{"id":21,"code":"TKS25304","name":"Bahan Bangunan dan Dasar - Dasar Teknologi Beton","sks":3,"semester":"3","grade":"","passed":false},
+{"id":22,"code":"TKS25305","name":"Geometri Jalan Raya","sks":2,"semester":"3","grade":"","passed":false},
+{"id":23,"code":"TKS25306","name":"Rekayasa Pondasi","sks":4,"semester":"3","grade":"","passed":false},
+{"id":24,"code":"TKS25307","name":"Praktikum Mekanika Tanah","sks":1,"semester":"3","grade":"","passed":false},
+{"id":25,"code":"TKS25308","name":"Struktur Kayu Dan Bambu","sks":2,"semester":"3","grade":"","passed":false},
+{"id":26,"code":"TKS25309","name":"Hidraulika","sks":1,"semester":"3","grade":"","passed":false},
+{"id":27,"code":"TKS25310","name":"Praktikum Hidraulika","sks":1,"semester":"3","grade":"","passed":false},
+
+{"id":28,"code":"TKS25401","name":"Metode Numerik","sks":3,"semester":"4","grade":"","passed":false},
+{"id":29,"code":"TKS25402","name":"Statistik & Probabilitas","sks":2,"semester":"4","grade":"","passed":false},
+{"id":30,"code":"TKS25403","name":"Analisa Struktur III","sks":2,"semester":"4","grade":"","passed":false},
+{"id":31,"code":"TKS25404","name":"Struktur Baja I","sks":2,"semester":"4","grade":"","passed":false},
+{"id":32,"code":"TKS25405","name":"Struktur Beton Bertulang I","sks":3,"semester":"4","grade":"","passed":false},
+{"id":33,"code":"TKS25406","name":"Bahan Perkerasan","sks":2,"semester":"4","grade":"","passed":false},
+{"id":34,"code":"TKS25407","name":"Manajemen Konstruksi","sks":3,"semester":"4","grade":"","passed":false},
+{"id":35,"code":"TKS25408","name":"Hidrologi Terapan","sks":1,"semester":"4","grade":"","passed":false},
+{"id":36,"code":"TKS25409","name":"Praktikum Teknologi Bahan & Beton","sks":1,"semester":"4","grade":"","passed":false},
+{"id":37,"code":"TKS25410","name":"Praktikum Hidrologi","sks":1,"semester":"4","grade":"","passed":false},
+{"id":38,"code":"TKS25411","name":"Bahasa Inggris Teknik","sks":2,"semester":"4","grade":"","passed":false},
+
+{"id":39,"code":"TKS25501","name":"Matematika IV","sks":2,"semester":"5","grade":"","passed":false},
+{"id":40,"code":"TKS25502","name":"Struktur Baja II","sks":3,"semester":"5","grade":"","passed":false},
+{"id":41,"code":"TKS25503","name":"Struktur Beton Bertulang II","sks":3,"semester":"5","grade":"","passed":false},
+{"id":42,"code":"TKS25504","name":"Rekayasa Irigasi","sks":3,"semester":"5","grade":"","passed":false},
+{"id":43,"code":"TKS25505","name":"Drainase","sks":2,"semester":"5","grade":"","passed":false},
+{"id":44,"code":"TKS25506","name":"Metode Pelaksanaan Konstruksi","sks":2,"semester":"5","grade":"","passed":false},
+{"id":45,"code":"TKS25507","name":"K3 Konstruksi & Manajemen Risiko","sks":2,"semester":"5","grade":"","passed":false},
+{"id":46,"code":"TKS25508","name":"Praktikum Bahan Perkerasaan","sks":1,"semester":"5","grade":"","passed":false},
+{"id":47,"code":"UNO3011","name":"Kwirausahaan","sks":3,"semester":"5","grade":"","passed":false},
+{"id":48,"code":"UNO3012","name":"KKN (Kuliah Kerja Nyata)","sks":3,"semester":"5","grade":"","passed":false},
+
+{"id":49,"code":"TKS25601","name":"Aplikasi Komputer Teknik Sipil","sks":2,"semester":"6","grade":"","passed":false},
+{"id":50,"code":"TKS25602","name":"Perancangan Banguan Sipil I (Capstone)","sks":2,"semester":"6","grade":"","passed":false},
+{"id":51,"code":"TKS25603","name":"Praktik Kerja","sks":2,"semester":"6","grade":"","passed":false},
+{"id":52,"code":"UNO2002","name":"Pendidikan Pancasila","sks":2,"semester":"6","grade":"","passed":false},
+{"id":53,"code":"TKSP2507","name":"Jalan Rel","sks":2,"semester":"6","grade":"","passed":false},
+{"id":54,"code":"TKSP2518","name":"Mekanika Batuan","sks":2,"semester":"6","grade":"","passed":false},
+{"id":55,"code":"TKSP2523","name":"Aspek Hukum Pembangunan","sks":2,"semester":"6","grade":"","passed":false},
+{"id":56,"code":"TKSP2524","name":"Pengelolaan Alat Berat","sks":2,"semester":"6","grade":"","passed":false},
+{"id":57,"code":"TKSP2503","name":"Metode Elemen Hingga","sks":2,"semester":"6","grade":"","passed":false},
+
+{"id":58,"code":"UNO2003","name":"Bahasa Indonesia","sks":2,"semester":"7","grade":"","passed":false},
+{"id":59,"code":"TKS75701","name":"Meteodologi Penelitian","sks":2,"semester":"7","grade":"","passed":false},
+{"id":60,"code":"TKSP2521","name":"Infrastruktur Berkelanjutan","sks":2,"semester":"7","grade":"","passed":false},
+{"id":61,"code":"UNO2001","name":"Pendidikan Kewarganegaraan","sks":2,"semester":"7","grade":"","passed":false},
+{"id":62,"code":"UNO2004","name":"Pendidikan Agama","sks":2,"semester":"7","grade":"","passed":false},
+{"id":63,"code":"TKS25702","name":"Etika Profesi & Tanggung Jawab Insinyur","sks":2,"semester":"7","grade":"","passed":false},
+{"id":64,"code":"TKS25703","name":"Perancangan Bangunan Sipil II (Capstone)","sks":2,"semester":"7","grade":"","passed":false},
+
+{"id":65,"code":"TKS86001","name":"Tugas Akhir / Skripsi (TA)","sks":3,"semester":"8","grade":"","passed":false},
+{"id":66,"code":"TKS86002","name":"Pendadaran","sks":1,"semester":"8","grade":"","passed":false}
+];
+
+// TARGET_SKS kept for reference but NOT used to change course sks
+const TARGET_SKS = { "1":20, "2":20, "3":22, "4":22, "5":24, "6":18, "7":14, "8":4 };
+
+const courses = JSON.parse(JSON.stringify(originalCourses));
+
+// No scaling function. SKS are preserved exactly as in originalCourses
+
+/* ===================== FUNGSI-FUNGSI LAINNYA ===================== */
+const GRADE_WEIGHTS = { "A":4.00, "A-":3.70, "B+":3.30, "B":3.00, "B-":2.70, "C+":2.30, "C":2.00, "D":1.00, "E":0.00 };
+const REQ = { "KKN (Kuliah Kerja Nyata)":80, "KP (Kerja Praktik)":100, "TA (Tugas Akhir)":125, "GRAD_SKS":144 };
+let currentTab = 'all';
+
+function renderTabs(){
+  const tabs=document.getElementById('tabs'); tabs.innerHTML='';
+  const list=[{id:'all',label:'Transkrip Keseluruhan'}];
+  for(let s=1;s<=8;s++) list.push({id:`sem_${s}`,label:`Semester ${s}`});
+  list.push({id:'summary',label:'Ringkasan'});
+  list.forEach(t=>{
+    const el=document.createElement('div'); el.className='tab'+(t.id===currentTab?' active':''); el.innerText=t.label;
+    el.onclick=()=>{ currentTab=t.id; renderSheet(); renderTabs(); };
+    tabs.appendChild(el);
+  });
+}
+
+function renderSheet(){
+
+  computeAll();
+  const area=document.getElementById('sheetArea'); area.innerHTML='';
+  // If on overall tab, show IPK summary and chart container
+  if(currentTab==='all'){
+    // IPK display (model A)
+    const ipWrap = document.createElement('div');
+    ipWrap.style.marginBottom = '10px';
+    ipWrap.style.padding = '8px';
+    ipWrap.style.borderRadius = '8px';
+    ipWrap.style.background = '#fff';
+    ipWrap.style.border = '1px solid #e6eef8';
+    const gpaText = document.getElementById('gpa') ? document.getElementById('gpa').innerText : 'IPK: 0.00';
+    ipWrap.innerHTML = `<strong>${gpaText}</strong>`;
+    area.appendChild(ipWrap);
+
+    // Chart container
+    const chartCard = document.createElement('div');
+    chartCard.className = 'card';
+    chartCard.style.marginBottom = '12px';
+    chartCard.innerHTML = `<h3 style="margin:0 0 8px 0">Grafik IPS Mahasiswa</h3><canvas id="ipsChart" height="140"></canvas>`;
+    area.appendChild(chartCard);
+  }
+  if(currentTab==='summary'){
+    const c=document.createElement('div'); c.innerHTML='<h3>Ringkasan</h3><div id="summaryContent"></div>'; area.appendChild(c);
+    computeAll(); updateFooterPremium(); updateSemesterIPDisplay(); return;
+  }
+  const wrap=document.createElement('div'); wrap.className='table-wrap';
+  const table=document.createElement('table'); table.id='mainTable';
+  table.innerHTML = `<thead><tr><th style="width:44px">No</th><th style="width:120px">Kode</th><th>Mata Kuliah</th><th style="width:60px">SKS</th><th style="width:110px">Sem</th><th style="width:140px">Nilai</th><th style="width:120px">Status</th></tr></thead>`;
+  const tbody=document.createElement('tbody');
+  const rows = courses.filter(c=> currentTab==='all' ? true : (currentTab.startsWith('sem_') ? c.semester === currentTab.split('_')[1] : true));
+  let counter = 0;
+  rows.forEach(c=>{
+    counter++;
+    const tr=document.createElement('tr'); tr.setAttribute('data-id',c.id); tr.setAttribute('data-sks',c.sks);
+    if(c.grade==='E') tr.classList.add('e-repeat');
+    const noCell = currentTab.startsWith('sem_') ? counter : c.id;
+    tr.innerHTML = `<td>${noCell}</td><td>${escapeHtml(c.code)}</td><td>${escapeHtml(c.name)}</td><td>${c.sks}</td>
+      <td><select class="sem">${renderSemOptions(c.semester)}</select></td>
+      <td><select class="grade">${renderGradeOptions(c.grade)}</select></td>
+      <td style="text-align:center"><span class="status">${c.passed? 'LULUS':''}</span></td>`;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+
+  const tfoot=document.createElement('tfoot');
+  const footerRow=document.createElement('tr');
+  footerRow.innerHTML = `<td colspan="7" id="footer_premium" style="text-align:right;font-weight:700">TOTAL: - MK • - SKS • - SKS Terisi • - SKS Lulus</td>`;
+  tfoot.appendChild(footerRow);
+  table.appendChild(tfoot);
+
+  wrap.appendChild(table); area.appendChild(wrap);
+
+  const semIpDiv = document.createElement('div');
+  semIpDiv.id = 'semesterIPDiv';
+  semIpDiv.className = 'sem-ip';
+  semIpDiv.style.display = currentTab.startsWith('sem_') ? 'block' : 'none';
+  area.appendChild(semIpDiv);
+
+  attachTableListeners(); computeAll(); renderSemesterGrid(); updateFooterPremium(); updateSemesterIPDisplay();
+  // render chart if on overall tab
+  if(currentTab==='all'){ renderChart(); }
+
+}
+
+function renderSemOptions(selected){ let s='<option value="">-</option>'; for(let i=1;i<=8;i++) s+=`<option ${selected==String(i)?'selected':''}>${i}</option>`; return s; }
+function renderGradeOptions(selected){ const opts=['','A','A-','B+','B','B-','C+','C','D','E']; return opts.map(o=>`<option value="${o}" ${o===selected?'selected':''}>${o||'-'}</option>`).join(''); }
+
+function attachTableListeners(){
+  const table=document.getElementById('mainTable'); if(!table) return;
+  table.querySelectorAll('.grade').forEach(el=>{ el.removeEventListener('change',onGradeChange); el.addEventListener('change',onGradeChange); });
+  table.querySelectorAll('.sem').forEach(el=>{ el.removeEventListener('change',onSemChange); el.addEventListener('change',onSemChange); });
+}
+
+function onGradeChange(e){
+  const tr=e.target.closest('tr'); const id=Number(tr.getAttribute('data-id')); const val=e.target.value;
+  const c = courses.find(x=>x.id===id); if(!c) return;
+  c.grade = val; c.passed = (val && val !== 'E');
+  tr.querySelector('.status').innerText = c.passed ? 'LULUS' : 'ULANG';
+  if(val==='E'){ tr.classList.add('e-repeat'); } else { tr.classList.remove('e-repeat'); }
+  computeAll(); renderSemesterGrid(); renderTabs(); updateFooterPremium(); updateSemesterIPDisplay();
+}
+
+function onSemChange(e){
+  const tr=e.target.closest('tr'); const id=Number(tr.getAttribute('data-id')); const val=e.target.value;
+  const c = courses.find(x=>x.id===id); if(c){ c.semester = val; }
+  computeAll(); renderSemesterGrid(); renderTabs(); updateFooterPremium(); updateSemesterIPDisplay();
+}
+
+function focusCourse(id){
+  currentTab='all'; renderTabs(); renderSheet();
+  const table=document.getElementById('mainTable'); if(!table) return;
+  const tr = table.querySelector(`tbody tr[data-id="${id}"]`);
+  if(tr){ tr.scrollIntoView({behavior:'smooth',block:'center'}); const sel = tr.querySelector('.grade'); if(sel) sel.focus(); }
+}
+
+function computeAll(){
+  const counts = {"A":0,"A-":0,"B+":0,"B":0,"B-":0,"C+":0,"C":0,"D":0,"E":0};
+  let totalPoints=0, sksTaken=0, sksPass=0, totalSKS=0;
+  courses.forEach(c=>{
+    totalSKS += Number(c.sks||0);
+    if(c.grade){
+      counts[c.grade] = (counts[c.grade]||0) + 1;
+      totalPoints += ((GRADE_WEIGHTS[c.grade]||0) * Number(c.sks||0));
+      sksTaken += Number(c.sks||0);
+      if(c.passed) sksPass += Number(c.sks||0);
+    }
+  });
+  const gpa = sksTaken ? (totalPoints / sksTaken) : 0;
+  document.getElementById('gradeCounts').innerText = 
+    `A:${counts["A"]} A-:${counts["A-"]} B+:${counts["B+"]} B:${counts["B"]} B-:${counts["B-"]} C+:${counts["C+"]} C:${counts["C"]} D:${counts["D"]} E:${counts["E"]}`;
+  document.getElementById('gpa').innerText = `IPK: ${gpa.toFixed(2)}`;
+  document.getElementById('sksSummary').innerText = `SKS total (program): ${totalSKS} • Sudah diisi: ${sksTaken} • Lulus: ${sksPass}`;
+  const kknOk = sksPass >= REQ["KKN (Kuliah Kerja Nyata)"], kpOk = sksPass >= REQ["KP (Kerja Praktik)"], taOk = sksPass >= REQ["TA (Tugas Akhir)"], gradOk = sksPass >= REQ["GRAD_SKS"];
+  document.getElementById('reqs').innerHTML = 
+    `KKN (Kuliah Kerja Nyata): ${sksPass}/${REQ["KKN (Kuliah Kerja Nyata)"]} (${kknOk?'TERPENUHI':'BELUM'})<br>
+     KP (Kerja Praktik): ${sksPass}/${REQ["KP (Kerja Praktik)"]} (${kpOk?'TERPENUHI':'BELUM'})<br>
+     TA (Tugas Akhir): ${sksPass}/${REQ["TA (Tugas Akhir)"]} (${taOk?'TERPENUHI':'BELUM'})`;
+  const gEl = document.getElementById('gradReqStatus');
+  gEl.innerText = `${sksPass}/${REQ["GRAD_SKS"]} (${gradOk?'TERPENUHI':'BELUM'})`;
+  gEl.className = gradOk ? 'req-ok' : 'req-bad';
+}
+
+function updateFooterPremium(){
+  const table = document.getElementById('mainTable');
+  if(!table) return;
+  let countMK = 0, totalSKS = 0, sksFilled = 0, sksLulus = 0;
+  table.querySelectorAll('tbody tr').forEach(tr=>{
+    if(tr.style.display === 'none') return;
+    const id = Number(tr.getAttribute('data-id'));
+    const c = courses.find(x=>x.id===id);
+    if(!c) return;
+    countMK++;
+    totalSKS += Number(c.sks || 0);
+    if(c.grade){
+      sksFilled += Number(c.sks || 0);
+      if(c.passed) sksLulus += Number(c.sks || 0);
+    }
+  });
+  const el = document.getElementById('footer_premium');
+  if(el) el.innerText = `TOTAL: ${countMK} MK • ${totalSKS} SKS • ${sksFilled} SKS Terisi • ${sksLulus} SKS Lulus`;
+}
+
+function updateSemesterIPDisplay(){
+  const semIpDiv = document.getElementById('semesterIPDiv');
+  if(!semIpDiv) return;
+  if(!currentTab.startsWith('sem_')){
+    semIpDiv.style.display = 'none'; semIpDiv.innerHTML = ''; return;
+  }
+  const sem = currentTab.split('_')[1];
+  const list = courses.filter(c => c.semester === sem);
+  if(list.length === 0){ semIpDiv.style.display = 'block'; semIpDiv.innerHTML = `IP Semester ${sem} : 0.00 • 0 SKS • 0 SKS Lulus`; return; }
+  let semSks = 0, semPoints = 0, semSksFilled = 0, semSksLulus = 0;
+  list.forEach(c=>{
+    semSks += Number(c.sks || 0);
+    if(c.grade){
+      semSksFilled += Number(c.sks || 0);
+      semPoints += (GRADE_WEIGHTS[c.grade] || 0) * Number(c.sks || 0);
+      if(c.passed) semSksLulus += Number(c.sks || 0);
+    }
+  });
+  const semIP = semSksFilled ? (semPoints / semSksFilled) : 0;
+  semIpDiv.style.display = 'block';
+  semIpDiv.innerHTML = `IP Semester ${sem} : ${semIP ? semIP.toFixed(2) : '0.00'} • ${semSks} SKS • ${semSksLulus} SKS Lulus`;
+}
+
+
+
+function renderChart(){
+  // mapping semester to labels
+  const labels = [
+    'Semester 1',
+    'Semester 2',
+    'Semester 3',
+    'Semester 4',
+    'Semester 5',
+    'Semester 6',
+    'Semester 7',
+    'Semester 8'
+  ];
+  const ips = []; const sks = [];
+  for(let i=1;i<=8;i++){
+    const list = courses.filter(c => c.semester === String(i));
+    let semSks = 0, semPoints = 0, semSksFilled = 0;
+    list.forEach(c=>{ semSks += Number(c.sks||0); if(c.grade){ semSksFilled += Number(c.sks||0); semPoints += (GRADE_WEIGHTS[c.grade]||0) * Number(c.sks||0); } });
+    const semIP = semSksFilled ? (semPoints / semSksFilled) : 0;
+    ips.push(Number(semIP.toFixed(2)));
+    sks.push(semSks);
+  }
+  const ctx = document.getElementById('ipsChart');
+  if(!ctx) return;
+  // destroy existing
+  if(window._ipsChart) { try{ window._ipsChart.destroy(); } catch(e){} }
+  window._ipsChart = new Chart(ctx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'IPS', data: ips, yAxisID: 'y', backgroundColor: 'rgba(54,162,235,0.8)', borderRadius:4 },
+        { label: 'SKS', data: sks, yAxisID: 'y1', backgroundColor: 'rgba(255,159,64,0.9)', borderRadius:4 }
+      ]
+    },
+    options: {
+      responsive:true,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        y: { type:'linear', position:'left', beginAtZero:true, title:{display:true,text:'IPS'} },
+        y1: { type:'linear', position:'right', beginAtZero:true, grid:{drawOnChartArea:false}, title:{display:true,text:'SKS'} }
+      },
+      plugins: {
+        legend:{ position:'bottom' }
+      }
+    }
+  });
+}
+
+function renderSemesterGrid(){
+  const grid=document.getElementById('semesterGrid'); grid.innerHTML='';
+  for(let s=1;s<=8;s++){
+    const col=document.createElement('div'); col.className='sem-col'; col.setAttribute('data-sem',s);
+    const title=document.createElement('h4'); title.innerText=`Semester ${s}`; col.appendChild(title);
+    const list = courses.filter(c=> c.semester === String(s));
+    if(list.length===0){
+      const em=document.createElement('div'); em.className='small-muted'; em.innerText='(belum ada matkul)'; col.appendChild(em);
+    } else {
+      list.forEach(item=>{
+        const it=document.createElement('div'); it.className='sem-item'; it.setAttribute('data-id', item.id);
+        it.innerHTML = `<div class="left"><strong>${escapeHtml(item.code)}</strong><div class="small-muted">${escapeHtml(item.name)}</div></div><div class="right"><div style="text-align:right">${item.sks} sks</div></div>`;
+        it.onclick = ()=> focusCourse(item.id);
+        col.appendChild(it);
+      });
+      const foot=document.createElement('div'); foot.className='small-muted'; foot.style.marginTop='8px'; foot.style.fontWeight='700';
+      foot.innerText = `(${list.length} mata kuliah)`; col.appendChild(foot);
+    }
+    grid.appendChild(col);
+  }
+}
+
+function applyQuickFilters(){
+  const onlyC = document.getElementById('filterC') ? document.getElementById('filterC').checked : false;
+  const onlyD = document.getElementById('filterD') ? document.getElementById('filterD').checked : false;
+  const onlyE = document.getElementById('onlyE') ? document.getElementById('onlyE').checked : false;
+  const qsem = document.getElementById('quickSemester') ? document.getElementById('quickSemester').value : '';
+  const table = document.getElementById('mainTable'); if(!table) return;
+  table.querySelectorAll('tbody tr').forEach(tr=>{
+    const id = Number(tr.getAttribute('data-id')); 
+    const c = courses.find(x=>x.id===id);
+    let show = true;
+    const gradeFilters = [];
+    if(onlyC) gradeFilters.push('C');
+    if(onlyD) gradeFilters.push('D');
+    if(onlyE) gradeFilters.push('E');
+    if(gradeFilters.length > 0){
+      if(!c.grade || gradeFilters.indexOf(c.grade) === -1) show = false;
+    }
+    if(qsem && c.semester !== qsem) show = false;
+    tr.style.display = show ? '' : 'none';
+  });
+  computeAll(); updateFooterPremium(); updateSemesterIPDisplay();
+}
+
+
+function exportAll(){
+  const name = (document.getElementById('studentName').value || 'Mahasiswa').replace(/\s+/g,'_');
+  const nim = (document.getElementById('studentNIM').value || 'NIM').replace(/\s+/g,'_');
+  let rows='';
+  courses.forEach(function(c){
+    rows += '<tr><td>'+c.id+'</td><td>'+escapeHtml(c.code)+'</td><td>'+escapeHtml(c.name)+'</td><td>'+c.sks+'</td><td>'+escapeHtml(c.semester)+'</td><td>'+escapeHtml(c.grade)+'</td><td>'+(c.passed? 'LULUS' : 'ULANG')+'</td></tr>';
+  });
+  var htmlDoc = '<!doctype html><html><head><meta charset="utf-8"><title>Transkrip_'+nim+'_'+name+'</title><style>table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px}</style></head><body><h2>Transkrip '+escapeHtml(name)+' ('+escapeHtml(nim)+')</h2><table><thead><tr><th>No</th><th>Kode</th><th>Matkul</th><th>SKS</th><th>Sem</th><th>Nilai</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></body></html>';
+  const blob = new Blob([htmlDoc],{type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download = nim+'_'+name+'_transkrip.html'; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); },1000);
+}
+
+
+function escapeHtml(s){ if(s===null||s===undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function loadLogo(files){ if(!files||!files[0]) return; const fr=new FileReader(); fr.onload=e=>{ const img=document.getElementById('logo'); img.src=e.target.result; img.style.display='block'; }; fr.readAsDataURL(files[0]); }
+function resetLogo(){ const img=document.getElementById('logo'); img.src='unwiku_logo.png'; img.style.display='block'; document.getElementById('logoFile').value=''; }
+
+renderTabs(); renderSheet(); computeAll(); renderSemesterGrid(); updateFooterPremium(); updateSemesterIPDisplay();
+
+function fillExample(){ const grades=['A','A-','B+','B','B-','C+','C','D','E']; courses.forEach((c,i)=>{ c.grade = grades[i % grades.length]; c.passed = (c.grade !== 'E'); }); renderSheet(); renderSemesterGrid(); renderTabs(); computeAll(); updateFooterPremium(); updateSemesterIPDisplay(); }
+function clearAll(){ courses.forEach(c=>{ c.grade=''; c.passed=false; }); renderSheet(); renderSemesterGrid(); renderTabs(); computeAll(); updateFooterPremium(); updateSemesterIPDisplay(); }
+</script>
+</body>
+</html>
